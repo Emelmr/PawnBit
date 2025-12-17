@@ -198,6 +198,15 @@ class GUI:
                                           variable=self.mouse_latency)
         self.mouse_latency_scale.pack()
         mouse_latency_frame.pack(anchor=tk.NW)
+        
+        # Create random delay checkbox
+        self.enable_random_delay = tk.BooleanVar(value=False)
+        self.random_delay_checkbox = tk.Checkbutton(
+            left_frame,
+            text="Human-like random delay (1–20s)",
+            variable=self.enable_random_delay
+        )
+        self.random_delay_checkbox.pack(anchor=tk.NW)
 
         # Separator
         separator_frame = tk.Frame(left_frame)
