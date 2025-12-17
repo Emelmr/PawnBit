@@ -99,9 +99,9 @@ class StockfishBot(multiprocess.Process):
             pass
      
     def human_delay(self):
-    if self.enable_random_delay:
-        delay = random.uniform(1, 20)
-        time.sleep(delay)
+        if self.enable_random_delay:
+            delay = random.uniform(1, 20)
+            time.sleep(delay)
 
     def go_to_next_puzzle(self):
         self.grabber.click_puzzle_next()
