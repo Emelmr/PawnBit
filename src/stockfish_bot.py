@@ -247,7 +247,7 @@ class StockfishBot(multiprocess.Process):
                                 stockfish.make_moves_from_current_position([move])
                                 break
 
-                    if not self_moved:
+if not self_moved:
     # Human-like thinking delay
     self.human_delay()
 
