@@ -1,6 +1,7 @@
 import multiprocess
 from stockfish import Stockfish
 import pyautogui
+import random
 import time
 import sys
 import os
@@ -13,7 +14,7 @@ import keyboard
 
 
 class StockfishBot(multiprocess.Process):
-    def __init__(self, chrome_url, chrome_session_id, website, pipe, overlay_queue, stockfish_path, enable_manual_mode, enable_mouseless_mode, enable_non_stop_puzzles, enable_non_stop_matches, mouse_latency, bongcloud, slow_mover, skill_level, stockfish_depth, memory, cpu_threads):
+    def __init__(self, chrome_url, chrome_session_id, website, pipe, overlay_queue, stockfish_path, enable_manual_mode, enable_mouseless_mode, enable_non_stop_puzzles, enable_non_stop_matches, mouse_latency, bongcloud, slow_mover, skill_level, stockfish_depth, memory, cpu_threads, enable_random_delay):
         multiprocess.Process.__init__(self)
 
         self.chrome_url = chrome_url
@@ -34,6 +35,7 @@ class StockfishBot(multiprocess.Process):
         self.grabber = None
         self.memory = memory
         self.cpu_threads = cpu_threads
+        self.enable_random_delay = enable_random_delay
         self.is_white = None
 
     # Converts a move to screen coordinates
@@ -95,6 +97,11 @@ class StockfishBot(multiprocess.Process):
     def wait_for_gui_to_delete(self):
         while self.pipe.recv() != "DELETE":
             pass
+     
+    def human_delay(self):
+    if self.enable_random_delay:
+        delay = random.uniform(1, 20)
+        time.sleep(delay)
 
     def go_to_next_puzzle(self):
         self.grabber.click_puzzle_next()
@@ -241,19 +248,29 @@ class StockfishBot(multiprocess.Process):
                                 break
 
                     if not self_moved:
-                        move_san = board.san(chess.Move(chess.parse_square(move[0:2]), chess.parse_square(move[2:4])))
-                        # Store actual move for accuracy calculation
-                        if board.turn == chess.WHITE:
-                            white_moves.append(move)
-                        else:
-                            black_moves.append(move)
-                        board.push_uci(move)
-                        stockfish.make_moves_from_current_position([move])
-                        move_list.append(move_san)
-                        if self.enable_mouseless_mode and not self.grabber.is_game_puzzles():
-                            self.grabber.make_mouseless_move(move, move_count + 1)
-                        else:
-                            self.make_move(move)
+    # Human-like thinking delay
+    self.human_delay()
+
+    move_san = board.san(
+        chess.Move(
+            chess.parse_square(move[0:2]),
+            chess.parse_square(move[2:4])
+        )
+    )
+
+    if board.turn == chess.WHITE:
+        white_moves.append(move)
+    else:
+        black_moves.append(move)
+
+    board.push_uci(move)
+    stockfish.make_moves_from_current_position([move])
+    move_list.append(move_san)
+
+    if self.enable_mouseless_mode and not self.grabber.is_game_puzzles():
+        self.grabber.make_mouseless_move(move, move_count + 1)
+    else:
+        self.make_move(move)
 
                     self.overlay_queue.put([])
 
